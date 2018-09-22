@@ -200,27 +200,67 @@ extension NetworkInteractionsManager.URLRequestBuilder
     
 }
 
-
+//MARK: Bad IDea
 //MARK: Helpers
 extension NetworkInteractionsManager
 {
-    func search(query: [String:String])
+    func get(baseURL: String , pathComponents: [String], queries: [String:String], headers: [String:String])
     {
+       self.request(
+        baseURL: baseURL,
+        pathComponents: pathComponents,
+        queries: queries,
+        requestType: HTTPMethod.get,
+        requestBody: nil,
+        headers: headers
+        )
+    }
+    
+    func post(baseURL: String , pathComponents: [String] , queries: [String:String] = [:], requestBody: Data?, headers: [String:String])
+    {
+        self.request(
+            baseURL: baseURL,
+            pathComponents: pathComponents,
+            queries: queries,
+            requestType: HTTPMethod.post,
+            requestBody: requestBody,
+            headers: headers
+        )
+    }
+    
+    func delete(baseURL: String , pathComponents: [String] ,queries: [String:String] = [:], requestBody: Data?, headers: [String:String])
+    {
+        self.request(
+            baseURL: baseURL,
+            pathComponents: pathComponents,
+            queries: queries,
+            requestType: HTTPMethod.delete,
+            requestBody: requestBody,
+            headers: headers
+        )
+    }
+    
+    func request(baseURL: String , pathComponents: [String] ,
+                 queries: [String:String] = [:], requestType: HTTPMethod,
+                 requestBody: Data?, headers: [String:String] = [:]) {
+        
         guard let searchURL =
-        self.urlBuilder
-            .baseUrl(NetworkInteractionsManager.URLEndPoints.baseURL)
-            .addPathComponents([NetworkInteractionsManager.URLEndPoints.Paths.search])
-            .addQueries(query)
-            .build()
+            self.urlBuilder
+                .baseUrl(baseURL)
+                .addPathComponents(pathComponents)
+                .addQueries(queries)
+                .build()
             else {
                 return
         }
         
         let searchRequest: URLRequest? =
-        self.urlRequestBuilder
-            .requestUrl(searchURL)
-            .build()
-        
+            self.urlRequestBuilder
+                .requestUrl(searchURL)
+                .requestType(requestType.rawValue)
+                .addBody(requestBody)
+                .addHTTPHeaderFields(headers)
+                .build()
     }
     
 }
