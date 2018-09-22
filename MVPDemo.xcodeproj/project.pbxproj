@@ -15,6 +15,9 @@
 		D38A77C921558ECA00424138 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D38A77C721558ECA00424138 /* LaunchScreen.storyboard */; };
 		D38A77D421558ECA00424138 /* MVPDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38A77D321558ECA00424138 /* MVPDemoTests.swift */; };
 		D38A77DF21558ECA00424138 /* MVPDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38A77DE21558ECA00424138 /* MVPDemoUITests.swift */; };
+		D38A77ED2155930600424138 /* README-Template.md in Resources */ = {isa = PBXBuildFile; fileRef = D38A77EC2155930600424138 /* README-Template.md */; };
+		D38A77EF21564C1F00424138 /* NetworkInteractionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38A77EE21564C1F00424138 /* NetworkInteractionsManager.swift */; };
+		D38A77F321564E4A00424138 /* NetworkInteractionsManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38A77F221564E4A00424138 /* NetworkInteractionsManagerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +52,9 @@
 		D38A77DA21558ECA00424138 /* MVPDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MVPDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D38A77DE21558ECA00424138 /* MVPDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MVPDemoUITests.swift; sourceTree = "<group>"; };
 		D38A77E021558ECA00424138 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D38A77EC2155930600424138 /* README-Template.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = "README-Template.md"; sourceTree = "<group>"; };
+		D38A77EE21564C1F00424138 /* NetworkInteractionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInteractionsManager.swift; sourceTree = "<group>"; };
+		D38A77F221564E4A00424138 /* NetworkInteractionsManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInteractionsManagerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +112,8 @@
 				D38A77C721558ECA00424138 /* LaunchScreen.storyboard */,
 				D38A77CA21558ECA00424138 /* Info.plist */,
 				D38A77C221558EB100424138 /* MVPDemo.xcdatamodeld */,
+				D38A77EC2155930600424138 /* README-Template.md */,
+				D38A77EE21564C1F00424138 /* NetworkInteractionsManager.swift */,
 			);
 			path = MVPDemo;
 			sourceTree = "<group>";
@@ -115,6 +123,7 @@
 			children = (
 				D38A77D321558ECA00424138 /* MVPDemoTests.swift */,
 				D38A77D521558ECA00424138 /* Info.plist */,
+				D38A77F221564E4A00424138 /* NetworkInteractionsManagerTests.swift */,
 			);
 			path = MVPDemoTests;
 			sourceTree = "<group>";
@@ -232,6 +241,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D38A77ED2155930600424138 /* README-Template.md in Resources */,
 				D38A77C921558ECA00424138 /* LaunchScreen.storyboard in Resources */,
 				D38A77C621558ECA00424138 /* Assets.xcassets in Resources */,
 				D38A77C121558EB100424138 /* Main.storyboard in Resources */,
@@ -261,6 +271,7 @@
 			files = (
 				D38A77BE21558EB100424138 /* ViewController.swift in Sources */,
 				D38A77C421558EB200424138 /* MVPDemo.xcdatamodeld in Sources */,
+				D38A77EF21564C1F00424138 /* NetworkInteractionsManager.swift in Sources */,
 				D38A77BC21558EB100424138 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -270,6 +281,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D38A77D421558ECA00424138 /* MVPDemoTests.swift in Sources */,
+				D38A77F321564E4A00424138 /* NetworkInteractionsManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
