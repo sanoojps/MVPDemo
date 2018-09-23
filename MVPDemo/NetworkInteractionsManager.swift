@@ -88,8 +88,7 @@ class NetworkInteractionsManager {
             URLSessionConfiguration.default
         
         private(set) var tasks :
-            [URLSessionTask : ((Data?, URLResponse?, Error?) -> Void)] =
-            [:]
+            [URLSessionTask] = []
         
         private(set) var response: URLResponse?
         
@@ -366,7 +365,7 @@ protocol URLSessionBuliderInterface
 {
     var session: URLSession {get}
     var sessionConfig: URLSessionConfiguration {get}
-    var tasks: [URLSessionTask : ((Data?, URLResponse?, Error?) -> Void)] {get}
+    var tasks: [URLSessionTask] {get}
     var sessionIdentifier: String {get}
     var data: Data? {get}
     var response: URLResponse? {get}
@@ -431,7 +430,7 @@ extension NetworkInteractionsManager.URLSessionBuilder {
                     self.session.dataTask(
                         with: sessionTask.taskRequest, completionHandler: completionHandler)
                 
-                self.tasks[dataTask] = completionHandler
+                self.tasks.append(dataTask)
                 
                 break
                 
@@ -458,7 +457,7 @@ extension NetworkInteractionsManager.URLSessionBuilder {
                         completionHandler: downloadCompletionHandler
                 )
                 
-                self.tasks[downloadTask] = completionHandler
+                self.tasks.append(downloadTask)
                 
                 break
                 
@@ -481,7 +480,7 @@ extension NetworkInteractionsManager.URLSessionBuilder {
                         completionHandler: completionHandler
                 )
                 
-                self.tasks[uploadTask] = completionHandler
+                self.tasks.append(uploadTask)
                 
                 break
             }
@@ -492,13 +491,9 @@ extension NetworkInteractionsManager.URLSessionBuilder {
     }
     
     func launch() {
-        
-        var iterator =
-            self.tasks.keys.makeIterator()
-        
-        DispatchQueue.concurrentPerform(iterations: self.tasks.keys.count) { (index:Int) in
-            let task = iterator.next() // since this is mutating
-            task?.resume()
+        DispatchQueue.concurrentPerform(iterations: self.tasks.count) { (index:Int) in
+            let task: URLSessionTask = self.tasks[index] // since this is mutating
+            task.resume()
         }
     }
     

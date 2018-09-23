@@ -194,7 +194,7 @@ extension NetworkInteractionsManagerTests {
                     ])
                 .build()
         
-        let urlRequest: URLRequest? =
+        let urlRequest: URLRequest! =
             builder.urlRequestBuilder
                 .requestUrl(url)
                 .requestType(httpmethod)
