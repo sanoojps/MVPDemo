@@ -77,11 +77,35 @@ class NetworkInteractionsManager {
         private(set) var allHTTPHeaderFields: [String:String] = [:]
     }
     
+    class URLSessionBuilder: URLSessionBuliderInterface {
+
+        typealias TaskCompletionHandler = (Data?, URLResponse?, Error?) -> Void
+        
+        private(set) var session: URLSession =
+            URLSession.shared
+        
+        private(set) var sessionConfig: URLSessionConfiguration =
+            URLSessionConfiguration.default
+        
+        private(set) var tasks :
+            [URLSessionTask : ((Data?, URLResponse?, Error?) -> Void)] =
+            [:]
+        
+        private(set) var response: URLResponse?
+        
+        private(set) var error: Error?
+        
+        private(set) var data: Data?
+        
+    }
+    
     let urlBuilder: URLBuilder
     let urlRequestBuilder: URLRequestBuilder
+    let urlSessionBuilder: URLSessionBuilder
     init() {
         self.urlBuilder = URLBuilder()
         self.urlRequestBuilder = URLRequestBuilder()
+        self.urlSessionBuilder = URLSessionBuilder()
     }
     
 }
@@ -100,10 +124,10 @@ extension NetworkInteractionsManager.URLBuilder
             queries.map { (pair:(key: String, value: String)) -> URLQueryItem in
                 return URLQueryItem(name: pair.key, value: pair.value)
         }
-  
+        
         self.queries = queryItems
         return self
-  
+        
     }
     
     func addPathComponents(_ components: [String]) -> Self {
@@ -116,7 +140,7 @@ extension NetworkInteractionsManager.URLBuilder
     }
     
     func build() -> URL? {
-    
+        
         guard var urlComponents: URLComponents =
             URLComponents(string: self.baseUrl) else {
                 return nil
@@ -127,12 +151,12 @@ extension NetworkInteractionsManager.URLBuilder
         
         urlComponents.path =
         path
-
+        
         urlComponents.queryItems =
-        self.queries
+            self.queries
         
         let url: URL? =
-        urlComponents.url
+            urlComponents.url
         
         self.url =
         url
@@ -149,7 +173,7 @@ extension NetworkInteractionsManager.URLBuilder
         
         return path
     }
-
+    
 }
 
 extension NetworkInteractionsManager.URLRequestBuilder
@@ -183,11 +207,11 @@ extension NetworkInteractionsManager.URLRequestBuilder
         }
         
         var urlRequest =
-        URLRequest.init(url: requestUrl)
+            URLRequest.init(url: requestUrl)
         
         urlRequest.httpMethod =
             self.httpMethod
-            
+        
         urlRequest.httpBody =
             self.httpBody
         
@@ -206,13 +230,13 @@ extension NetworkInteractionsManager
 {
     func get(baseURL: String , pathComponents: [String], queries: [String:String], headers: [String:String])
     {
-       self.request(
-        baseURL: baseURL,
-        pathComponents: pathComponents,
-        queries: queries,
-        requestType: HTTPMethod.get,
-        requestBody: nil,
-        headers: headers
+        self.request(
+            baseURL: baseURL,
+            pathComponents: pathComponents,
+            queries: queries,
+            requestType: HTTPMethod.get,
+            requestBody: nil,
+            headers: headers
         )
     }
     
@@ -242,7 +266,9 @@ extension NetworkInteractionsManager
     
     func request(baseURL: String , pathComponents: [String] ,
                  queries: [String:String] = [:], requestType: HTTPMethod,
-                 requestBody: Data?, headers: [String:String] = [:]) {
+                 requestBody: Data?, headers: [String:String] = [:],
+                 completion: ((_ data:Data?, _ urlResponse:URLResponse?, _ error:Error?) -> ())? = nil
+        ) {
         
         guard let searchURL =
             self.urlBuilder
@@ -254,13 +280,226 @@ extension NetworkInteractionsManager
                 return
         }
         
-        let searchRequest: URLRequest? =
+        guard let searchRequest: URLRequest =
             self.urlRequestBuilder
                 .requestUrl(searchURL)
                 .requestType(requestType.rawValue)
                 .addBody(requestBody)
                 .addHTTPHeaderFields(headers)
                 .build()
+            else {
+                return
+        }
+        
+        let session: URLSession = URLSession.shared
+        let dataTask: URLSessionDataTask =
+            session.dataTask(with: searchRequest)
+            { (data:Data?, urlResponse:URLResponse?, error:Error? ) in
+                completion?(data,urlResponse,error)
+        }
+        dataTask.resume()
+        session.finishTasksAndInvalidate()
+    }
+    
+}
+
+enum URLSessionType: String {
+    case shared
+    case ephemeral
+    case background
+}
+
+enum URLSessionTaskType: String {
+    case data
+    case upload
+    case download
+}
+
+class URLSessionConfigurableTask {
+
+    typealias TaskCompletionHandler =
+        NetworkInteractionsManager.URLSessionBuilder.TaskCompletionHandler
+    
+    private(set) var taskType: URLSessionTaskType
+    private(set) var taskRequest: URLRequest
+    private(set) var taskData: Data?
+    private(set) var taskCompletionHandler: TaskCompletionHandler
+    
+    init(request: URLRequest)
+    {
+        self.taskType = .data
+        self.taskRequest = request
+        self.taskData = nil
+        self.taskCompletionHandler = { (data:Data?, urlResponse:URLResponse?, error:Error? ) in }
+    }
+    
+    func taskType(_ type: URLSessionTaskType) -> URLSessionConfigurableTask
+    {
+        self.taskType = type
+        return self
+    }
+
+    func addData(_ taskData: Data?) -> URLSessionConfigurableTask
+    {
+        self.taskData = taskData
+        return self
+    }
+    
+    func callBack(_ taskCompletionHandler: @escaping TaskCompletionHandler) -> URLSessionConfigurableTask
+    {
+        self.taskCompletionHandler = taskCompletionHandler
+        return self
+    }
+    
+//    func sample()
+//    {
+//        URLSessionConfigurableTask
+//            .init(request: URLRequest.init(url: URL.init(string: "")!))
+//            .taskType(URLSessionTaskType.data)
+//            .addData(nil)
+//            .callBack { (data:Data?, response:URLResponse?, error:Error?) in
+//        }
+//    }
+}
+
+protocol URLSessionBuliderInterface
+{
+    var session: URLSession {get}
+    var sessionConfig: URLSessionConfiguration {get}
+    var tasks: [URLSessionTask : ((Data?, URLResponse?, Error?) -> Void)] {get}
+    var sessionIdentifier: String {get}
+    var data: Data? {get}
+    var response: URLResponse? {get}
+    var error: Error? {get}
+    
+    func urlSession(_ session: URLSessionType) -> Self
+    func addConfiguration(_ sessionConfig: URLSessionConfiguration) -> Self
+    func addTasks(_ sessionTasks: [URLSessionConfigurableTask])-> Self
+}
+
+//MARK: URLSessionBuliderInterface
+extension NetworkInteractionsManager.URLSessionBuilder {
+    
+    var sessionIdentifier: String {
+        return self.session.configuration.identifier ?? ""
+    }
+    
+    func urlSession(_ session: URLSessionType) -> Self {
+        switch session
+        {
+            
+        case .ephemeral:
+            let sessionConfig = URLSessionConfiguration.ephemeral
+            self.session = URLSession.init(configuration: sessionConfig)
+            break
+            
+        case .background:
+            let sessionConfig = URLSessionConfiguration.background(withIdentifier: UUID().uuidString)
+            self.session = URLSession.init(configuration: sessionConfig)
+            break
+            
+        default:
+            break
+        }
+        
+        return self
+    }
+    
+    func addConfiguration(_ sessionConfig: URLSessionConfiguration) -> Self {
+        self.session = URLSession.init(configuration: sessionConfig)
+        return self
+    }
+    
+    func addTasks(_ sessionTasks: [URLSessionConfigurableTask]) -> Self {
+    
+        sessionTasks.forEach { (sessionTask:URLSessionConfigurableTask) in
+            
+            switch sessionTask.taskType {
+            case .data:
+                
+                let completionHandler: TaskCompletionHandler =
+                {[weak self](data:Data?, response:URLResponse?, error: Error?) -> Void in
+                    
+                    self?.data = data
+                    self?.response = response
+                    self?.error = error
+                    
+                    sessionTask.taskCompletionHandler(data,response,error)
+                }
+                
+                let dataTask: URLSessionDataTask =
+                    self.session.dataTask(
+                        with: sessionTask.taskRequest, completionHandler: completionHandler)
+                
+                self.tasks[dataTask] = completionHandler
+                
+                break
+                
+            case .download:
+                
+                let completionHandler: TaskCompletionHandler = sessionTask.taskCompletionHandler
+                
+                let downloadCompletionHandler: (URL?, URLResponse?, Error?) -> Void = {
+                    [weak self](url:URL?, response:URLResponse?, error: Error?) -> Void in
+                    
+                    let data: Data?  = (url != nil) ? (try? Data.init(contentsOf: url!)) : nil
+                    
+                    self?.data = data
+                    self?.response = response
+                    self?.error = error
+                    
+                    completionHandler(data,response,error)
+                    
+                }
+                
+                let downloadTask: URLSessionDownloadTask =
+                    self.session.downloadTask(
+                        with: sessionTask.taskRequest,
+                        completionHandler: downloadCompletionHandler
+                )
+                
+                self.tasks[downloadTask] = completionHandler
+                
+                break
+                
+            case.upload:
+                
+                let completionHandler: TaskCompletionHandler =
+                {[weak self](data:Data?, response:URLResponse?, error: Error?) -> Void in
+                    
+                    self?.data = data
+                    self?.response = response
+                    self?.error = error
+                    
+                    sessionTask.taskCompletionHandler(data,response,error)
+                }
+                
+                let uploadTask: URLSessionUploadTask =
+                    self.session.uploadTask(
+                        with: sessionTask.taskRequest,
+                        from: sessionTask.taskData,
+                        completionHandler: completionHandler
+                )
+                
+                self.tasks[uploadTask] = completionHandler
+                
+                break
+            }
+            
+        }
+        
+        return self
+    }
+    
+    func launch() {
+        
+        var iterator =
+            self.tasks.keys.makeIterator()
+        
+        DispatchQueue.concurrentPerform(iterations: self.tasks.keys.count) { (index:Int) in
+            let task = iterator.next() // since this is mutating
+            task?.resume()
+        }
     }
     
 }

@@ -123,7 +123,7 @@ extension NetworkInteractionsManagerTests {
         
     }
     
-    func testNetworkInteractionsManager() {
+    func testNetworkInteractionsManagerRequestBuilding() {
         
         let urlToTest: URL! =
             URL.init(string: "https://itunes.apple.com/search?limit=25&term=jack+johnson")
@@ -160,6 +160,71 @@ extension NetworkInteractionsManagerTests {
                 .build()
         
         XCTAssertEqual(request, urlRequest)
+        
+    }
+    
+    
+    func testNetworkInteractionsManager() {
+        
+        let expectation = XCTestExpectation.init(description: "Netwrokinvoke")
+        
+        let urlToTest: URL! =
+            URL.init(string: "https://itunes.apple.com/search?limit=25&term=jack+johnson")
+        
+        let httpmethod = "GET"
+        
+        let httpHeaders: [String:String] = [:]
+        
+        let httpBody: Data? = nil
+        
+        let request: URLRequest! =
+            URLRequest.init(url: urlToTest)
+        
+        let builder = NetworkInteractionsManager()
+        
+        let url: URL! =
+            builder.urlBuilder
+                .baseUrl(NetworkInteractionsManager.URLEndPoints.baseURL)
+                .addPathComponents(
+                    ["search"]
+                )
+                .addQueries([
+                    "term" : "jack+johnson" ,
+                    "limit" : "25"
+                    ])
+                .build()
+        
+        let urlRequest: URLRequest? =
+            builder.urlRequestBuilder
+                .requestUrl(url)
+                .requestType(httpmethod)
+                .addBody(httpBody)
+                .addHTTPHeaderFields(httpHeaders)
+                .build()
+        
+        builder.urlSessionBuilder
+            .urlSession(URLSessionType.shared)
+            .addConfiguration(URLSessionConfiguration.default)
+            .addTasks([
+                URLSessionConfigurableTask
+                    .init(request: urlRequest!)
+                    .taskType(URLSessionTaskType.data)
+                    .addData(nil)
+                    .callBack({ (data:Data?, response:URLResponse?, error:Error?) in
+                        
+                        print((response as? HTTPURLResponse)?.statusCode as Any)
+                        
+                        print(String.init(data: data ?? Data(), encoding: String.Encoding.utf8) as Any)
+                        
+                        expectation.fulfill()
+                })
+                ])
+            .launch()
+    
+        
+        wait(for: [expectation], timeout: TimeInterval.init(30))
+        
+        XCTAssertNil(builder.urlSessionBuilder.error)
         
     }
     
