@@ -86,3 +86,13 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 * Inspiration
 * etc
 
+```
+To Do
+
+23 Sept 2018
+------------
+
+1. combine URLBuilder and URLRequestBuilder into one builder
+2. combine that builder into sessionBuilder
+
+```
